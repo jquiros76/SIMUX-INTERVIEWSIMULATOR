@@ -629,10 +629,19 @@ async function getAudio(text, metaEl) {
 }
 
 function playURL(url) {
-  const a = new Audio(url);
-  a.play().catch(e => console.warn('Play blocked:', e));
-}
+  const a = document.createElement("audio");
 
+  a.src = url;
+  a.preload = "auto";
+  a.volume = 1;
+  a.muted = false;
+
+  document.body.appendChild(a);
+
+  a.play().catch(err => {
+    console.warn("Autoplay bloqueado:", err);
+  });
+}
 function replayBtn(btn) {
   if (!btn.dataset.url) return;
   btn.classList.add('playing');
