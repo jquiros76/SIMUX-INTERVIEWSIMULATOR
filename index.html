@@ -327,7 +327,7 @@ body{
 <div class="toast" id="toast"></div>
 
 <script>
-const WEBHOOK = 'https://hook.us2.make.com/49o5vxsgya86k4d6sj51uy3igyncqc04';
+const WEBHOOK = 'https://hook.us2.make.com/55omddvbjaew83nq0ux8zb7cmx3iyglc';
 
 let userName  = '';
 let userJob   = '';
@@ -511,6 +511,7 @@ async function sendMessage() {
 
     const reply = await res.text();
     addAI(reply && reply.trim() ? reply.trim() : "Interesting. Could you tell me more about that?");
+    playAudio(reply);
 
   } catch (err) {
     removeThinking();
@@ -524,7 +525,26 @@ async function sendMessage() {
     userInput.focus();
   }
 }
+async function playAudio(text) {
+  try {
+    const res = await fetch(AUDIO_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text })
+    });
 
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+    audio.play();
+
+  } catch (err) {
+    console.error("Audio error:", err);
+  }
+}
 /* ── INPUT KEYS ── */
 function inputKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
