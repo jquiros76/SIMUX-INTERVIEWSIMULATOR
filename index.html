@@ -649,6 +649,20 @@ async function getAudio(text, metaEl) {
     isAudioLoading = false; // 🔥 LIBERA BLOQUEO
   }
 }
+  function playURL(url) {
+  const a = document.createElement("audio");
+
+  a.src = url;
+  a.preload = "auto";
+  a.volume = 1;
+  a.muted = false;
+
+  document.body.appendChild(a);
+
+  a.play().catch(err => {
+    console.warn("Autoplay bloqueado:", err);
+  });
+}
 
 /* ── INPUT ──────────────────────────────────────────── */
 function ikey(e) {
