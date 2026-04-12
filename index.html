@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AI Interview Simulator</title>
+<title>SUMIX Interview Simulator</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 /* ─── RESET ─────────────────────────────────────── */
@@ -349,7 +349,6 @@ body{background:#F2F0EB;color:#18181B;display:flex;align-items:stretch;justify-c
 <script>
 /* ── WEBHOOKS ─────────────────────────────────────── */
 const TEXT_WEBHOOK_URL  = "https://hook.us2.make.com/49o5vxsgya86k4d6sj51uy3igyncqc04";
-const AUDIO_WEBHOOK_URL = "https://hook.us2.make.com/55omddvbjaew83nq0ux8zb7cmx3iyglc";
 
 /* ── STATE ────────────────────────────────────────── */
 let userName    = '';
@@ -592,7 +591,7 @@ async function getAudio(text, metaEl) {
     metaEl.appendChild(span);
   }
   try {
-    const res = await fetch(AUDIO_WEBHOOK_URL, {
+    const res = await fetch(TEXT_WEBHOOK_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ text: text })
