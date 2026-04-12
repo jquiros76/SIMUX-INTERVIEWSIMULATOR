@@ -597,9 +597,17 @@ async function getAudio(text, metaEl) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ text: text })
     });
-    if (!res.ok) throw new Error('Audio HTTP ' + res.status);
+    console.log("AUDIO STATUS:", res.status);
+console.log("AUDIO TYPE:", res.headers.get("content-type"));
+    
+    if (!res.ok) {
+  const errText = await res.text();
+  console.error("AUDIO ERROR BODY:", errText);
+  throw new Error('Audio HTTP ' + res.status);
+}
 
     const blob = await res.blob();
+    console.log("BLOB TYPE:", blob.type);
     if (prevAudioURL) { URL.revokeObjectURL(prevAudioURL); }
     const url  = URL.createObjectURL(blob);
     prevAudioURL = url;
