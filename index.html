@@ -675,6 +675,17 @@ function ichange(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
 }
+  function playURL(url) {
+  const a = document.createElement("audio");
+  a.src = url;
+  a.preload = "auto";
+  a.volume = 1;
+  a.muted = false;
+  document.body.appendChild(a);
+  a.play().catch(err => {
+    console.warn("Autoplay bloqueado:", err);
+  });
+}
 </script>
 </body>
 </html>
