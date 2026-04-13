@@ -427,7 +427,7 @@ body{
       <div class="av-chrome">
         <div class="av-pill">
           <div class="av-green"></div>
-          Sarah Chen · AI Interviewer
+          Liz Simux · AI Interviewer
         </div>
         <div class="av-btns">
           <div class="av-btn">📷</div>
@@ -442,7 +442,7 @@ body{
         <div class="av-poster" id="av-poster">
           <div class="poster-ring"></div>
           <div class="poster-ico">👩‍💼</div>
-          <div class="poster-lbl">Connecting to Sarah…</div>
+          <div class="poster-lbl">Connecting to Liz…</div>
         </div>
         <div class="avbars">
           <div class="avb"></div><div class="avb"></div><div class="avb"></div>
@@ -452,7 +452,7 @@ body{
 
       <div class="av-foot">
         <div class="av-id">
-          <div class="av-name">Sarah Chen</div>
+          <div class="av-name">Liz Simux</div>
           <div class="av-role">Senior HR · SIMUX AI</div>
         </div>
         <div class="av-state" id="av-state">Ready</div>
@@ -466,14 +466,14 @@ body{
       <div class="chatbox" id="chatbox"></div>
 
       <div class="ctrl-card">
-        <div class="ctrl-status" id="ctrl-st">Waiting for Sarah…</div>
+        <div class="ctrl-status" id="ctrl-st">Waiting for Liz…</div>
 
         <div class="utx" id="utx">Your spoken answer will appear here…</div>
 
         <div class="mic-row">
           <button class="btn-mic" id="btn-mic" onclick="toggleMic()" disabled>🎤</button>
           <div class="mic-meta">
-            <div class="mic-ttl" id="mic-ttl">Wait for Sarah to finish</div>
+            <div class="mic-ttl" id="mic-ttl">Wait for Liz to finish</div>
             <div class="mic-sub" id="mic-sub">Then tap to record your answer</div>
             <div class="nomicwarn" id="nomicwarn">⚠️ Microphone access denied</div>
           </div>
@@ -573,7 +573,7 @@ function setTalking(on){
     avState.className='av-state talking';
     avState.textContent='Speaking';
     ctrlSt.className='ctrl-status talking';
-    ctrlSt.textContent='🔊 Sarah is speaking…';
+    ctrlSt.textContent='🔊 Liz is speaking…';
   }else{
     avPanel.classList.remove('talking');
     avState.className='av-state';
@@ -612,7 +612,7 @@ function playVideoResponse(videoUrl, onEnd){
   avVideo.play().catch(function(e){
     console.warn('[VIDEO] Autoplay blocked:', e);
     // Show a tap-to-play overlay
-    toast('🔊 Tap the video to play Sarah\'s response');
+    toast('🔊 Tap the video to play Liz\'s response');
     // Let user tap the video itself
     avVideo.addEventListener('click', function once(){
       avVideo.play().catch(function(){});
@@ -645,7 +645,7 @@ function playAudioFallback(b64, onEnd){
 function addMsg(role, html){
   var m = document.createElement('div');
   m.className = 'cmsg ' + role;
-  var lbl = role === 'ai' ? 'Sarah · AI Interviewer' : userName;
+  var lbl = role === 'ai' ? 'Liz · AI Interviewer' : userName;
   m.innerHTML =
     '<div class="clabel">' + lbl + '</div>' +
     '<div class="cbub">' + html + '</div>';
@@ -657,7 +657,7 @@ function addTyping(){
   var m = document.createElement('div');
   m.className = 'cmsg ai'; m.id = 'typing-node';
   m.innerHTML =
-    '<div class="clabel">Sarah · AI Interviewer</div>' +
+    '<div class="clabel">Liz · AI Interviewer</div>' +
     '<div class="cbub"><div class="typing-bub">' +
       '<div class="td"></div><div class="td"></div><div class="td"></div>' +
     '</div></div>';
@@ -797,7 +797,7 @@ async function sendToWebhook(input){
   btnSubmit.classList.remove('show');
   setTalking(false);
   ctrlSt.className  = 'ctrl-status busy';
-  ctrlSt.textContent = '💭 Sarah is thinking…';
+  ctrlSt.textContent = '💭 Liz is thinking…';
   avState.className  = 'av-state busy';
   avState.textContent = 'Thinking';
   addTyping();
@@ -921,7 +921,7 @@ function beginInterview(){
   avVideo.src = '';
   avVideo.classList.remove('active');
   avPoster.classList.remove('hidden');
-  avPoster.querySelector('.poster-lbl').textContent = 'Sarah is getting ready…';
+  avPoster.querySelector('.poster-lbl').textContent = 'Liz is getting ready…';
 
   document.getElementById('tb-cand').innerHTML =
     '<strong>' + esc(n) + '</strong> · ' + esc(j);
@@ -945,7 +945,7 @@ function restart(){
   avVideo.src = '';
   avVideo.classList.remove('active');
   avPoster.classList.remove('hidden');
-  avPoster.querySelector('.poster-lbl').textContent = 'Connecting to Sarah…';
+  avPoster.querySelector('.poster-lbl').textContent = 'Connecting to Liz…';
   document.getElementById('inp-name').value = '';
   document.getElementById('inp-job').value  = '';
   showScreen('s-start');
