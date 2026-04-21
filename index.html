@@ -307,12 +307,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);-webkit-font-s
       <div class="chatbox" id="chatbox"></div>
 
       <div class="ctrl-card">
-        <div class="ctrl-status" id="ctrl-st">Waiting for Sarah…</div>
+        <div class="ctrl-status" id="ctrl-st">Waiting for…</div>
         <div class="utx" id="utx">Your spoken answer will appear here…</div>
         <div class="mic-row">
           <button class="btn-mic" id="btn-mic" onclick="toggleMic()" disabled>🎤</button>
           <div class="mic-meta">
-            <div class="mic-ttl" id="mic-ttl">Wait for Sarah to finish</div>
+            <div class="mic-ttl" id="mic-ttl">Wait for finish</div>
             <div class="mic-sub" id="mic-sub">Then tap to record your answer</div>
             <div class="nomicwarn" id="nomicwarn">⚠️ Microphone access denied</div>
           </div>
@@ -468,7 +468,7 @@ function setTalking(on){
   if(on){
     avPanel.classList.add('talking');
     avState.className  = 'av-state talking'; avState.textContent = 'Speaking';
-    ctrlSt.className   = 'ctrl-status talking'; ctrlSt.textContent = '🔊 Sarah is speaking…';
+    ctrlSt.className   = 'ctrl-status talking'; ctrlSt.textContent = '🔊 speaking…';
   } else {
     avPanel.classList.remove('talking');
     avState.className  = 'av-state'; avState.textContent = 'Ready';
