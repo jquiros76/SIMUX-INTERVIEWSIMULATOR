@@ -610,9 +610,26 @@ function stopCurrentAudio(){
 }
 
 /* Play a public audio URL directly */
-function playAudioUrl(url, onEnd){
+function unlockAndPlay(url, onEnd);{
   stopCurrentAudio();
   setTalking(true);
+  async function unlockAndPlay(url, onEnd){
+  try {
+    const tmp = new Audio();
+    tmp.src = url;
+    tmp.muted = true;
+
+    await tmp.play();
+    tmp.pause();
+
+    // ahora sí reproducir normal
+    playAudioUrl(url, onEnd);
+
+  } catch(e){
+    console.warn("Unlock failed:", e);
+    playAudioUrl(url, onEnd);
+  }
+}
 
   var audio = new Audio();
   currentAudio = audio;
@@ -970,7 +987,7 @@ async function fetchAudioStep(sessionId, text, onDone){
 /* ── Fetch audio from URL and play directly ── */
 async function fetchAndPlayAudio(url, onEnd){
   /* For public URLs (Cloudinary, S3, etc.) play directly — no ArrayBuffer needed */
-  playAudioUrl(url, onEnd);
+  unlockAndPlay(url, onEnd);
 }
 
 /* ── ADVANCE STATE ── */
