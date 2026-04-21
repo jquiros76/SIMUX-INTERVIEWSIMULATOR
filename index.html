@@ -644,7 +644,9 @@ function playAudioUrl(url, onEnd){
   stopCurrentAudio();
   setTalking(true);
 
-  var audio = new Audio();
+  var audio = new Audio(url); // 🔥 aquí ya asignas src
+  audio.crossOrigin = "anonymous";
+
   currentAudio = audio;
 
   audio.onended = function(){
@@ -654,6 +656,18 @@ function playAudioUrl(url, onEnd){
       if(onEnd) onEnd();
     }, 300);
   };
+
+  audio.onerror = function(){
+    console.warn("Audio error");
+    currentAudio = null;
+    setTalking(false);
+    if(onEnd) onEnd();
+  };
+
+  audio.play().catch(function(err){
+    console.warn("Playback blocked:", err);
+  });
+}
 
   audio.onerror = function(){
     console.warn('[SIMUX] Audio error:', audio.error);
