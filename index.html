@@ -793,7 +793,8 @@ async function fetchAudioStep(sessionId, text, onDone){
       headers: {'Content-Type': 'application/json'},
       body:    JSON.stringify({
         session_id: sessionId,
-        text:       text
+        text:       text,
+        lang: interviewLang
       })
     });
 
