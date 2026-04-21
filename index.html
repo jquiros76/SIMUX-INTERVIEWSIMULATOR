@@ -875,7 +875,7 @@ async function sendToWebhook(input){
     /* Thinking delay for realism (skip on opener) */
     if(input !== '__START__'){
       ctrlSt.className   = 'ctrl-status analyzing';
-      ctrlSt.textContent = '🧠 Sarah is analyzing your answer…';
+      ctrlSt.textContent = '🧠 ' + getInterviewer().name.split(' ')[0] + ' is analyzing your answer…';
       await new Promise(function(r){ setTimeout(r, 1200); });
     }
 
@@ -921,7 +921,8 @@ async function fetchAudioStep(sessionId, text, onDone){
       headers: {'Content-Type': 'application/json'},
       body:    JSON.stringify({
         session_id: sessionId,
-        text:       text
+        text:       text,
+        lang: interviewLang
       })
     });
 
