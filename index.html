@@ -410,7 +410,6 @@ var currentAudio = null;
    One persistent <audio> element reused every time.
    Unlocked on first real user gesture.
 ═══════════════════════════════════════════════════ */
-var audioPlayer    = new Audio();
 var _audioUnlocked = false;
 audioPlayer.volume = 1;
 
@@ -866,17 +865,24 @@ function initSpeech(){
   };
 
   recognition.onresult = function(e){
-    var text = '';
-    for(var i = 0; i < e.results.length; i++){
-      if(e.results[i].isFinal) text += e.results[i][0].transcript + ' ';
+  let final = '';
+  let interim = '';
+
+  for(let i = 0; i < e.results.length; i++){
+    if(e.results[i].isFinal){
+      final += e.results[i][0].transcript + ' ';
+    } else {
+      interim += e.results[i][0].transcript + ' ';
     }
-    text = text.trim();
-    if(text){
-      transcript = text;
-      utx.textContent = transcript;
-      utx.classList.add('active');
-    }
-  };
+  }
+
+  transcript = (final || interim).trim();
+
+  if(transcript){
+    utx.textContent = transcript;
+    utx.classList.add('active');
+  }
+};
 
   recognition.onend = function(){
     if(!isRecording) return;
@@ -891,7 +897,7 @@ function initSpeech(){
   if(e.error === 'no-speech'){
     utx.textContent = '⚠️ No speech detected. Try again.';
     ctrlSt.textContent = 'No speech detected — tap and speak clearly';
-    
+    btnMic.disabled = false;
     btnSubmit.classList.remove('show');
     isRecording = false;
 
@@ -938,7 +944,7 @@ function toggleMic(){
   if(isProcessing) return;
   if(isRecording) stopRec(); else startRec();
 }
-
+_settled = false;
 function startRec(){
   if(!recognition){ 
     toast('Speech recognition not available.', 'err'); 
@@ -975,24 +981,7 @@ function startRec(){
   }, 600); // puedes probar 500–800ms
 }
 
-  /* Immediate UI feedback BEFORE recognition.start() */
-  btnSubmit.classList.remove('show');
-  utx.textContent = '🎙️ Speak NOW… 🎤';
-  utx.classList.add('active');
-  btnMic.classList.add('rec');
-  btnMic.textContent = '⏹';
-  document.getElementById('mic-ttl').textContent = 'Tap to stop';
-  document.getElementById('mic-sub').textContent = 'Speak clearly — tap stop when done';
-  avState.className   = 'av-state hearing';
-  avState.textContent = 'Listening';
-  ctrlSt.className    = 'ctrl-status hearing';
-  ctrlSt.textContent  = '🎤 Recording…';
-  isRecording = true;
-
-  try{ recognition.start(); }catch(e){ console.warn('[SIMUX] start error:', e); }
-}
-
-function stopRec(){
+ function stopRec(){
   isRecording = false;
   try{ recognition.stop(); }catch(e){}
 
