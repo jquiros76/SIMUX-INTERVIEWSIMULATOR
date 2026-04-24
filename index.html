@@ -834,7 +834,50 @@ function initSpeech(){
   recognition.continuous = false;
   recognition.maxAlternatives = 1;
 }
+ recognition.onresult = function(e){
+    let final = '';
+    let interim = '';
 
+    for(let i = 0; i < e.results.length; i++){
+      if(e.results[i].isFinal){
+        final += e.results[i][0].transcript + ' ';
+      } else {
+        interim += e.results[i][0].transcript + ' ';
+      }
+    }
+
+    transcript = (final || interim).trim();
+
+    if(transcript){
+      utx.textContent = transcript;
+      utx.classList.add('active');
+      resetSilence();
+    }
+  };
+
+  recognition.onend = function(){
+    if(micState === MIC_STATE.LISTENING){
+      forceFinalize();
+    }
+  };
+
+  recognition.onerror = function(e){
+    console.warn('[MIC ERROR]', e.error);
+
+    if(e.error === 'no-speech'){
+      forceFinalize();
+      return;
+    }
+
+    if(e.error === 'aborted'){
+      return;
+    }
+
+    micState = MIC_STATE.IDLE;
+    btnMic.classList.remove('rec');
+    btnMic.textContent = '🎤';
+  };
+}
 
 /* ═══════════════════════════════════════════════
    MIC ENGINE — ESTABLE Y CONTROLADO
@@ -953,54 +996,6 @@ function resetSilence(){
 }
 
 
-/* ═══════════════════════════════════════════════
-   RECOGNITION HOOKS
-═══════════════════════════════════════════════ */
-
-recognition.onresult = function(e){
-  let final = '';
-  let interim = '';
-
-  for(let i = 0; i < e.results.length; i++){
-    if(e.results[i].isFinal){
-      final += e.results[i][0].transcript + ' ';
-    } else {
-      interim += e.results[i][0].transcript + ' ';
-    }
-  }
-
-  transcript = (final || interim).trim();
-
-  if(transcript){
-    utx.textContent = transcript;
-    utx.classList.add('active');
-    resetSilence();
-  }
-};
-
-recognition.onend = function(){
-  if(micState === MIC_STATE.LISTENING){
-    forceFinalize();
-  }
-};
-
-recognition.onerror = function(e){
-  console.warn('[MIC ERROR]', e.error);
-
-  if(e.error === 'no-speech'){
-    forceFinalize();
-    return;
-  }
-
-  if(e.error === 'aborted'){
-    return;
-  }
-
-  micState = MIC_STATE.IDLE;
-  btnMic.classList.remove('rec');
-  btnMic.textContent = '🎤';
-};
-  
 /* ═══════════════════════════════════════════════════
    TWO-STEP SEND
    Step 1: get text+scores fast (~3s)
