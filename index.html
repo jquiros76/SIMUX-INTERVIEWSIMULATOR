@@ -886,23 +886,28 @@ function initSpeech(){
   };
 
   recognition.onerror = function(e){
-    console.warn('[SIMUX] recognition error:', e.error);
-    if(e.error === 'no-speech' && isRecording){
-      /* Auto-retry — browser timed out before user spoke */
-      console.log('[SIMUX] Retrying…');
-      try{ recognition.start(); }catch(err){}
-      return;
-    }
-    if(e.error === 'not-allowed'){
-      document.getElementById('nomicwarn').classList.add('on');
-      toast('Microphone access denied.', 'err');
-    }
-    if(e.error !== 'aborted'){
-      isRecording = false;
-      _doSettle();
-    }
-  };
-}
+  console.warn('[SIMUX] recognition error:', e.error);
+
+  if(e.error === 'no-speech'){
+    utx.textContent = '⚠️ No speech detected. Try again.';
+    ctrlSt.textContent = 'No speech detected — tap and speak clearly';
+    
+    btnSubmit.classList.remove('show');
+    isRecording = false;
+
+    btnMic.classList.remove('rec'); 
+    btnMic.textContent = '🎤';
+
+    return;
+  }
+
+  if(e.error === 'not-allowed'){
+    document.getElementById('nomicwarn').classList.add('on');
+    toast('Microphone access denied.', 'err');
+  }
+
+  stopRec();
+};
 
 function _doSettle(){
   if(_settled) return;
@@ -935,16 +940,40 @@ function toggleMic(){
 }
 
 function startRec(){
-  if(!recognition){
-    toast('Speech recognition not available.', 'err');
-    return;
+  if(!recognition){ 
+    toast('Speech recognition not available.', 'err'); 
+    return; 
   }
 
-  /* Reinit with correct lang for current session */
-  recognition.lang = _getLang();
+  unlockAudioContext();
 
   transcript = '';
-  _settled   = false;
+  utx.textContent = '🎤 Preparing microphone...';
+  utx.classList.add('active');
+
+  btnMic.classList.add('rec'); 
+  btnMic.textContent = '⏹';
+
+  document.getElementById('mic-ttl').textContent = 'Listening...';
+  document.getElementById('mic-sub').textContent = 'Start speaking in 1 second';
+
+  avState.className = 'av-state hearing'; 
+  avState.textContent = 'Listening';
+
+  ctrlSt.className  = 'ctrl-status hearing'; 
+  ctrlSt.textContent = '🎤 Activating mic...';
+
+  isRecording = true;
+
+  // 🔥 ESPERA antes de iniciar (CLAVE)
+  setTimeout(() => {
+    try {
+      recognition.start();
+      ctrlSt.textContent = '🎤 Recording... speak now';
+      utx.textContent = 'Listening...';
+    } catch(e){}
+  }, 600); // puedes probar 500–800ms
+}
 
   /* Immediate UI feedback BEFORE recognition.start() */
   btnSubmit.classList.remove('show');
