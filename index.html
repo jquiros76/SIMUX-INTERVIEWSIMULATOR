@@ -793,10 +793,9 @@ function addScores(sc){
 }
 
 /* ═══════════════════════════════════════════════════
-   SPEECH RECOGNITION
-   Single global instance, preloaded mic permission,
-   interimResults:false + continuous:false for accuracy.
+   SPEECH RECOGNITION (SETUP)
 ═══════════════════════════════════════════════════ */
+
 var _settled = false;
 
 function _getLang(){
@@ -805,151 +804,203 @@ function _getLang(){
        : 'en-US';
 }
 
-/* Preload mic on page load — eliminates first-tap delay */
 function preloadMic(){
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream){
-      /* Permission granted — stop immediately, we just needed the unlock */
       stream.getTracks().forEach(function(t){ t.stop(); });
       console.log('[SIMUX] Mic preloaded');
     })
-    .catch(function(e){ console.warn('[SIMUX] Mic preload failed:', e); });
+    .catch(function(e){
+      console.warn('[SIMUX] Mic preload failed:', e);
+    });
 }
 
-/* Create single recognition instance — called once */
 function initSpeech(){
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
   if(!SR){
     document.getElementById('nomicwarn').classList.add('on');
     toast('Speech recognition not supported. Use Chrome.', 'err');
     return;
   }
 
-  if(recognition){ try{ recognition.abort(); }catch(e){} }
+  if(recognition){
+    try{ recognition.abort(); }catch(e){}
+  }
 
   recognition = new SR();
-  recognition.lang            = _getLang();
-  recognition.interimResults  = true;
-  recognition.continuous      = true;
+  recognition.lang = _getLang();
+  recognition.interimResults = true;
+  recognition.continuous = false;
   recognition.maxAlternatives = 1;
-
-  recognition.onstart = function(){
-    utx.textContent = '🎙️ Speak NOW… 🎤';
-    utx.classList.add('active');
-    ctrlSt.className   = 'ctrl-status hearing';
-    ctrlSt.textContent = '🎤 Recording…';
-  };
-
-  recognition.onresult = function(e){
-    var fin = '', interim = '';
-    for(var i = 0; i < e.results.length; i++){
-      if(e.results[i].isFinal) fin += e.results[i][0].transcript + ' ';
-      else interim += e.results[i][0].transcript;
-    }
-    var live = (fin || interim).trim();
-    if(live){ transcript = live; utx.textContent = live; utx.classList.add('active'); }
-  };
-
-  recognition.onend = function(){
-    if(!isRecording) return;
-    isRecording = false;
-    _doSettle();
-  };
-
-  recognition.onerror = function(e){
-    console.warn('[SIMUX] recognition error:', e.error);
-    if(e.error === 'no-speech' && isRecording){
-      /* Auto-retry on no-speech */
-      try{ recognition.start(); }catch(err){}
-      return;
-    }
-    if(e.error === 'not-allowed'){
-      document.getElementById('nomicwarn').classList.add('on');
-      toast('Microphone access denied.', 'err');
-    }
-    if(e.error !== 'aborted'){
-      isRecording = false;
-      _doSettle();
-    }
-  };
 }
 
-function _doSettle(){
-  if(_settled) return;
-  _settled = true;
 
-  btnMic.classList.remove('rec');
-  btnMic.textContent = '🎤';
-  btnMic.disabled    = false;
-  document.getElementById('mic-ttl').textContent = 'Tap to answer';
-  avState.className   = 'av-state';
-  avState.textContent = 'Waiting';
-  ctrlSt.className    = 'ctrl-status';
-  utx.classList.remove('active');
+/* ═══════════════════════════════════════════════
+   MIC ENGINE — ESTABLE Y CONTROLADO
+═══════════════════════════════════════════════ */
 
-  if(transcript.trim()){
-    utx.textContent = transcript;
-    document.getElementById('mic-sub').textContent = 'Review and submit your answer';
-    ctrlSt.textContent = '✅ Answer ready — tap Submit';
-    btnSubmit.classList.add('show');
-  } else {
-    utx.textContent = 'Nothing detected. Try again.';
-    document.getElementById('mic-sub').textContent = 'Press mic and speak clearly';
-    ctrlSt.textContent = 'Nothing detected — try again';
+const MIC_STATE = {
+  IDLE: 'idle',
+  PREPARING: 'preparing',
+  LISTENING: 'listening',
+  PROCESSING: 'processing'
+};
+
+let micState = MIC_STATE.IDLE;
+let silenceTimer = null;
+
+/* ── TOGGLE ── */
+function toggleMic(){
+  if(isProcessing) return;
+
+  switch(micState){
+    case MIC_STATE.IDLE:
+      startRecordingFlow();
+      break;
+
+    case MIC_STATE.LISTENING:
+      stopRecordingFlow();
+      break;
+
+    case MIC_STATE.PREPARING:
+      return;
   }
 }
 
-function toggleMic(){
-  if(isProcessing) return;
-  if(isRecording) stopRec(); else startRec();
-}
-
-function startRec(){
+/* ── START ── */
+function startRecordingFlow(){
   if(!recognition){
-    toast('Speech recognition not available.', 'err');
+    toast('Speech recognition not available', 'err');
     return;
   }
 
-  unlockAudio();
+  micState = MIC_STATE.PREPARING;
+  _settled = false;
   transcript = '';
-  _settled   = false;
-  btnSubmit.classList.remove('show');
 
-  utx.textContent = '🎙️ Speak NOW… 🎤';
-  utx.classList.add('active');
+  unlockAudioContext();
+
   btnMic.classList.add('rec');
   btnMic.textContent = '⏹';
-  document.getElementById('mic-ttl').textContent = 'Tap to stop';
-  document.getElementById('mic-sub').textContent = 'Speak clearly — tap stop when done';
-  avState.className   = 'av-state hearing';
-  avState.textContent = 'Listening';
-  ctrlSt.className    = 'ctrl-status hearing';
-  ctrlSt.textContent  = '🎤 Recording…';
-  isRecording = true;
-
-  try{ recognition.start(); }catch(e){ console.warn('[SIMUX] start error:', e); }
-}
-
-function stopRec(){
-  isRecording = false;
-  try{ recognition.stop(); }catch(e){}
-  ctrlSt.textContent = '⏳ Processing…';
-  setTimeout(function(){
-    if(!_settled && !isProcessing) _doSettle();
-  }, 1000);
-}
-
-function submitAnswer(){
-  var ans = transcript.trim();
-  if(!ans){ toast('No answer detected. Try again.', 'err'); return; }
-
-  unlockAudio(); /* reinforce unlock on every submit gesture */
   btnSubmit.classList.remove('show');
-  addMsg('user', esc(ans));
-  transcript = '';
-  sendToWebhook(ans);
+
+  utx.textContent = '🎤 Preparing microphone...';
+  utx.classList.add('active');
+
+  ctrlSt.textContent = 'Preparing microphone...';
+
+  setTimeout(() => {
+    try{
+      recognition.start();
+      micState = MIC_STATE.LISTENING;
+
+      ctrlSt.textContent = '🎤 Listening...';
+      utx.textContent = 'Listening...';
+
+    }catch(e){
+      console.warn('[MIC] start error', e);
+      micState = MIC_STATE.IDLE;
+    }
+  }, 500);
 }
 
+/* ── STOP ── */
+function stopRecordingFlow(){
+  if(micState !== MIC_STATE.LISTENING) return;
+
+  micState = MIC_STATE.PROCESSING;
+  isRecording = false;
+
+  try{ recognition.stop(); }catch(e){}
+
+  ctrlSt.textContent = 'Processing...';
+
+  setTimeout(forceFinalize, 700);
+}
+
+/* ── FINALIZADOR ── */
+function forceFinalize(){
+  if(_settled) return;
+  _settled = true;
+
+  micState = MIC_STATE.IDLE;
+
+  btnMic.classList.remove('rec');
+  btnMic.textContent = '🎤';
+  btnMic.disabled = false;
+
+  if(transcript && transcript.trim().length > 2){
+    utx.textContent = transcript;
+    btnSubmit.classList.add('show');
+    ctrlSt.textContent = '✅ Answer ready — tap Submit';
+    document.getElementById('mic-sub').textContent = 'Review and submit your answer';
+  } else {
+    utx.textContent = 'No speech detected. Try again.';
+    ctrlSt.textContent = 'Try again';
+    document.getElementById('mic-sub').textContent = 'Tap and speak clearly';
+  }
+}
+
+/* ── SILENCE AUTO STOP ── */
+function resetSilence(){
+  clearTimeout(silenceTimer);
+  silenceTimer = setTimeout(() => {
+    if(micState === MIC_STATE.LISTENING){
+      stopRecordingFlow();
+    }
+  }, 2000);
+}
+
+
+/* ═══════════════════════════════════════════════
+   RECOGNITION HOOKS
+═══════════════════════════════════════════════ */
+
+recognition.onresult = function(e){
+  let final = '';
+  let interim = '';
+
+  for(let i = 0; i < e.results.length; i++){
+    if(e.results[i].isFinal){
+      final += e.results[i][0].transcript + ' ';
+    } else {
+      interim += e.results[i][0].transcript + ' ';
+    }
+  }
+
+  transcript = (final || interim).trim();
+
+  if(transcript){
+    utx.textContent = transcript;
+    utx.classList.add('active');
+    resetSilence();
+  }
+};
+
+recognition.onend = function(){
+  if(micState === MIC_STATE.LISTENING){
+    forceFinalize();
+  }
+};
+
+recognition.onerror = function(e){
+  console.warn('[MIC ERROR]', e.error);
+
+  if(e.error === 'no-speech'){
+    forceFinalize();
+    return;
+  }
+
+  if(e.error === 'aborted'){
+    return;
+  }
+
+  micState = MIC_STATE.IDLE;
+  btnMic.classList.remove('rec');
+  btnMic.textContent = '🎤';
+};
+<<
 /* ═══════════════════════════════════════════════════
    TWO-STEP SEND
    Step 1: get text+scores fast (~3s)
