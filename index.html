@@ -495,7 +495,27 @@ const utx       = document.getElementById('utx');
 const btnMic    = document.getElementById('btn-mic');
 const btnSubmit = document.getElementById('btn-submit');
 const toastEl   = document.getElementById('toast-el');
+/* ===== MIC BUTTON EVENTS ===== */
 
+// MOBILE
+btnMic.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  startRecordingFlow(); // usa tu función real
+});
+
+btnMic.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  stopRecordingFlow(); // usa tu función real
+});
+
+btnMic.addEventListener("touchcancel", () => {
+  stopRecordingFlow();
+});
+
+// DESKTOP
+btnMic.addEventListener("mousedown", startRecordingFlow);
+btnMic.addEventListener("mouseup", stopRecordingFlow);
+  
 /* ── UTILS ── */
 function showScreen(id){
   ['s-start','s-interview','s-end'].forEach(function(s){
