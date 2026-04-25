@@ -880,19 +880,29 @@ function startRec(e){
       if(ev.data && ev.data.size > 0) _audioChunks.push(ev.data);
     };
 
-    _mediaRecorder.onstop = function(){
-      var mimeUsed = _mediaRecorder.mimeType || 'audio/webm';
-      var blob = new Blob(_audioChunks, { type: mimeUsed });
-      _audioChunks = [];
-      if(blob.size < 1000){
-        /* Too short — likely no speech */
-        _resetMicUI();
-        utx.textContent = 'Too short. Hold longer and speak clearly.';
-        ctrlSt.textContent = 'Try again — hold the mic and speak';
-        return;
-      }
-      _sendAudioBlob(blob);
-    };
+   _mediaRecorder.onstop = function(){
+  var mimeUsed = _mediaRecorder.mimeType || 'audio/webm';
+  var blob = new Blob(_audioChunks, { type: mimeUsed });
+  _audioChunks = [];
+
+  var duration = Date.now() - recordingStartTime;
+
+  if(duration < 800){
+    _resetMicUI();
+    utx.textContent = 'Speak longer so I can understand you.';
+    ctrlSt.textContent = 'Hold the mic and speak clearly';
+    return;
+  }
+
+  if(blob.size < 8000){
+    _resetMicUI();
+    utx.textContent = 'Too short. Hold longer and speak clearly.';
+    ctrlSt.textContent = 'Try again — hold the mic and speak';
+    return;
+  }
+
+  _sendAudioBlob(blob);
+};
 
     _mediaRecorder.start(100); /* collect in 100ms chunks */
   }
